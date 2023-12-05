@@ -3,6 +3,7 @@
 * xref:getting-started.adoc[Getting Started]
 * xref:api/index.adoc[]
 ** xref:api/aiclient.adoc[]
+*** xref:api/clients/huggingface.adoc[]
 ** xref:api/prompt.adoc[]
 ** xref:api/output-parser.adoc[]
 ** xref:api/etl-pipeline.adoc[]
@@ -15,5 +16,6 @@
 *** xref:api/vectordbs/neo4j.adoc[]
 *** xref:api/vectordbs/pgvector.adoc[]
 *** xref:api/vectordbs/weaviate.adoc[]
+** xref:api/testing.adoc[]
 * Appendices
 ** xref:glossary.adoc[]
