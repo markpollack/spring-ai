@@ -7,6 +7,13 @@
 ** xref:api/output-parser.adoc[]
 ** xref:api/etl-pipeline.adoc[]
 ** xref:api/embeddings.adoc[]
+*** xref:api/embeddings/onnx.adoc[]
 ** xref:api/vectordbs.adoc[]
+*** xref:api/vectordbs/azure.adoc[]
+*** xref:api/vectordbs/chroma.adoc[]
+*** xref:api/vectordbs/milvus.adoc[]
+*** xref:api/vectordbs/neo4j.adoc[]
+*** xref:api/vectordbs/pgvector.adoc[]
+*** xref:api/vectordbs/weaviate.adoc[]
 * Appendices
 ** xref:glossary.adoc[]

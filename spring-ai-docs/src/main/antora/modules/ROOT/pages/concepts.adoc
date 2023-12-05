@@ -140,13 +140,6 @@ Output parsing employs meticulously crafted prompts, often necessitating multipl
 
 This challenge has prompted OpenAI to introduce 'OpenAI Functions' as a means to specify the desired output format from the model precisely.
 
-== Chaining Calls
-
-A chain is a concept that represents a series of calls to an AI model.
-It uses the output from one call as the input to another.
-
-By chaining calls together, you can support complex use cases by composing pipelines of multiple chains.
-
 == Bringing Your Data to the AI model
 
 How can you equip the AI model with information on which it has not been trained?
