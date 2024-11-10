@@ -28,8 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.ai.autoconfigure.mistralai.MistralAiAutoConfiguration;
-import org.springframework.ai.autoconfigure.mistralai.tool.WeatherServicePromptIT.MyWeatherService.Request;
-import org.springframework.ai.autoconfigure.mistralai.tool.WeatherServicePromptIT.MyWeatherService.Response;
+import org.springframework.ai.autoconfigure.mistralai.tool.WeatherServiceBeanPromptIT.MyWeatherService.Request;
+import org.springframework.ai.autoconfigure.mistralai.tool.WeatherServiceBeanPromptIT.MyWeatherService.Response;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -50,9 +50,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 0.8.1
  */
 @EnabledIfEnvironmentVariable(named = "MISTRAL_AI_API_KEY", matches = ".*")
-public class WeatherServicePromptIT {
+public class WeatherServiceBeanPromptIT {
 
-	private final Logger logger = LoggerFactory.getLogger(WeatherServicePromptIT.class);
+	private final Logger logger = LoggerFactory.getLogger(WeatherServiceBeanPromptIT.class);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withPropertyValues("spring.ai.mistralai.api-key=" + System.getenv("MISTRAL_AI_API_KEY"))

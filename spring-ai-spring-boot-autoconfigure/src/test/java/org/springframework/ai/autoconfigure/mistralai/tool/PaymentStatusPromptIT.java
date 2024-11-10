@@ -48,7 +48,7 @@ public class PaymentStatusPromptIT {
 			new Transaction("T1003"), new StatusDate("Paid", "2021-10-07"), new Transaction("T1004"),
 			new StatusDate("Paid", "2021-10-05"), new Transaction("T1005"), new StatusDate("Pending", "2021-10-08"));
 
-	private final Logger logger = LoggerFactory.getLogger(WeatherServicePromptIT.class);
+	private final Logger logger = LoggerFactory.getLogger(WeatherServiceBeanPromptIT.class);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withPropertyValues("spring.ai.mistralai.apiKey=" + System.getenv("MISTRAL_AI_API_KEY"))
