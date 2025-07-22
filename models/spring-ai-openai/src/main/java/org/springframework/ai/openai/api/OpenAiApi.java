@@ -29,9 +29,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.ai.chat.prompt.ExtraParameters;
 import org.springframework.ai.model.ApiKey;
 import org.springframework.ai.model.ChatModelDescription;
 import org.springframework.ai.model.ModelOptionsUtils;
@@ -194,6 +199,57 @@ public class OpenAiApi {
 				addDefaultHeadersIfMissing(headers);
 			})
 			.body(chatRequest)
+			.retrieve()
+			.toEntity(ChatCompletion.class);
+		// @formatter:on
+	}
+
+	/**
+	 * Creates a model response for the given chat conversation with ExtraParameters
+	 * support.
+	 * @param chatRequest The chat completion request.
+	 * @param additionalHttpHeader Optional, additional HTTP headers to be added to the
+	 * request.
+	 * @param extraParameters Optional, extra parameters for headers, query params, and
+	 * body fields.
+	 * @return Entity response with {@link ChatCompletion} as a body and HTTP status code
+	 * and headers.
+	 */
+	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest,
+			MultiValueMap<String, String> additionalHttpHeader, ExtraParameters extraParameters) {
+
+		Assert.notNull(chatRequest, "The request body can not be null.");
+		Assert.isTrue(!chatRequest.stream(), "Request must set the stream property to false.");
+		Assert.notNull(additionalHttpHeader, "The additional HTTP headers can not be null.");
+
+		// Prepare the request body with extra body parameters merged
+		Object requestBody = chatRequest;
+		if (extraParameters != null && !extraParameters.getBody().isEmpty()) {
+			ObjectMapper mapper = new ObjectMapper();
+			ObjectNode json = mapper.valueToTree(chatRequest);
+			extraParameters.getBody().forEach((key, value) -> {
+				JsonNode v = mapper.valueToTree(value);
+				json.set(key, v);
+			});
+			requestBody = json;
+		}
+
+		// @formatter:off
+		return this.restClient.post()
+			.uri(uriBuilder -> {
+				uriBuilder.path(this.completionsPath);
+				// Add extra query parameters
+				if (extraParameters != null && !extraParameters.getQuery().isEmpty()) {
+					extraParameters.getQuery().forEach(uriBuilder::queryParam);
+				}
+				return uriBuilder.build();
+			})
+			.headers(headers -> {
+				headers.addAll(additionalHttpHeader);
+				// Extra headers are already included in additionalHttpHeader from OpenAiChatModel
+				addDefaultHeadersIfMissing(headers);
+			})
+			.body(requestBody)
 			.retrieve()
 			.toEntity(ChatCompletion.class);
 		// @formatter:on
@@ -559,7 +615,14 @@ public class OpenAiApi {
 		GPT_4_O_MINI("gpt-4o-mini"),
 
 		/**
-		 * <b>GPT-4o-mini Audio Preview</b> is a preview release model that accepts audio
+		 * <b>GPT-4o mini Search Preview</b> is a specialized model for web search in Chat
+		 * Completions. It is trained to understand and execute web search queries. See
+		 * the web search guide for more information.
+		 */
+		GPT_4_O_MINI_SEARCH_PREVIEW("gpt-4o-mini-search-preview"),
+
+		/**
+		 * <b>GPT-4o mini Audio Preview</b> is a preview release model that accepts audio
 		 * inputs and outputs and can be used in the Chat Completions REST API.
 		 * <p>
 		 * Context window: 128,000 tokens. Max output tokens: 16,384 tokens. Knowledge
@@ -665,14 +728,7 @@ public class OpenAiApi {
 		 * Completions. It is trained to understand and execute web search queries. See
 		 * the web search guide for more information.
 		 */
-		GPT_4_O_SEARCH_PREVIEW("gpt-4o-search-preview"),
-
-		/**
-		 * <b>GPT-4o mini Search Preview</b> is a specialized model for web search in Chat
-		 * Completions. It is trained to understand and execute web search queries. See
-		 * the web search guide for more information.
-		 */
-		GPT_4_O_MINI_SEARCH_PREVIEW("gpt-4o-mini-search-preview");
+		GPT_4_O_SEARCH_PREVIEW("gpt-4o-search-preview");
 
 		public final String value;
 
@@ -1077,8 +1133,8 @@ public class OpenAiApi {
 		 * @param temperature What sampling temperature to use, between 0 and 1.
 		 */
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model, Double temperature) {
-			this(messages, model, null, null, null, null, null, null, null, null, null, null, null, null, null,
-					null, null, null, false, null, temperature, null,
+			this(messages, model, null, null, null, null, null, null, null, null, null,
+					null, null, null, null, null, null, null, false, null, temperature, null,
 					null, null, null, null, null, null);
 		}
 
@@ -1556,7 +1612,7 @@ public class OpenAiApi {
 			 * @param title The title of the web resource.
 			 * @param url The URL of the web resource.
 			 */
-			@JsonInclude(JsonInclude.Include.NON_NULL)
+			@JsonInclude(Include.NON_NULL)
 			public record UrlCitation(@JsonProperty("end_index") Integer endIndex,
 					@JsonProperty("start_index") Integer startIndex, @JsonProperty("title") String title,
 					@JsonProperty("url") String url) {

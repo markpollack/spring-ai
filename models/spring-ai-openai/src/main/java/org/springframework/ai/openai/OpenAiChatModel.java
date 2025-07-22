@@ -197,7 +197,10 @@ public class OpenAiChatModel implements ChatModel {
 			.observe(() -> {
 
 				ResponseEntity<ChatCompletion> completionEntity = this.retryTemplate
-					.execute(ctx -> this.openAiApi.chatCompletionEntity(request, getAdditionalHttpHeaders(prompt)));
+					.execute(ctx -> this.openAiApi.chatCompletionEntity(request,
+							getAdditionalHttpHeaders(prompt.getOptions()),
+							(prompt.getOptions() instanceof OpenAiChatOptions chatOptions)
+									? chatOptions.getExtraParameters() : null));
 
 				var chatCompletion = completionEntity.getBody();
 
@@ -284,7 +287,7 @@ public class OpenAiChatModel implements ChatModel {
 			}
 
 			Flux<OpenAiApi.ChatCompletionChunk> completionChunks = this.openAiApi.chatCompletionStream(request,
-					getAdditionalHttpHeaders(prompt));
+					getAdditionalHttpHeaders(prompt.getOptions()));
 
 			// For chunked responses, only the first chunk contains the choice role.
 			// The rest of the chunks with same ID share the same role.
@@ -401,10 +404,10 @@ public class OpenAiChatModel implements ChatModel {
 		});
 	}
 
-	private MultiValueMap<String, String> getAdditionalHttpHeaders(Prompt prompt) {
+	private MultiValueMap<String, String> getAdditionalHttpHeaders(ChatOptions options) {
 
 		Map<String, String> headers = new HashMap<>(this.defaultOptions.getHttpHeaders());
-		if (prompt.getOptions() != null && prompt.getOptions() instanceof OpenAiChatOptions chatOptions) {
+		if (options != null && options instanceof OpenAiChatOptions chatOptions) {
 			headers.putAll(chatOptions.getHttpHeaders());
 
 			// Add headers from ExtraParameters
@@ -538,6 +541,8 @@ public class OpenAiChatModel implements ChatModel {
 					this.defaultOptions.getToolCallbacks()));
 			requestOptions.setToolContext(ToolCallingChatOptions.mergeToolContext(runtimeOptions.getToolContext(),
 					this.defaultOptions.getToolContext()));
+			requestOptions.setExtraParameters(ModelOptionsUtils.mergeOption(runtimeOptions.getExtraParameters(),
+					this.defaultOptions.getExtraParameters()));
 		}
 		else {
 			requestOptions.setHttpHeaders(this.defaultOptions.getHttpHeaders());
@@ -545,6 +550,7 @@ public class OpenAiChatModel implements ChatModel {
 			requestOptions.setToolNames(this.defaultOptions.getToolNames());
 			requestOptions.setToolCallbacks(this.defaultOptions.getToolCallbacks());
 			requestOptions.setToolContext(this.defaultOptions.getToolContext());
+			requestOptions.setExtraParameters(this.defaultOptions.getExtraParameters());
 		}
 
 		ToolCallingChatOptions.validateToolCallbacks(requestOptions.getToolCallbacks());
