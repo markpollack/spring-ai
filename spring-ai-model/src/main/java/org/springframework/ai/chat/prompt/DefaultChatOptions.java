@@ -41,6 +41,8 @@ public class DefaultChatOptions implements ChatOptions {
 
 	private Double topP;
 
+	private ExtraParameters extraParameters;
+
 	@Override
 	public String getModel() {
 		return this.model;
@@ -114,6 +116,15 @@ public class DefaultChatOptions implements ChatOptions {
 	}
 
 	@Override
+	public ExtraParameters getExtraParameters() {
+		return this.extraParameters;
+	}
+
+	public void setExtraParameters(ExtraParameters extraParameters) {
+		this.extraParameters = extraParameters;
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends ChatOptions> T copy() {
 		DefaultChatOptions copy = new DefaultChatOptions();
@@ -125,6 +136,7 @@ public class DefaultChatOptions implements ChatOptions {
 		copy.setTemperature(this.getTemperature());
 		copy.setTopK(this.getTopK());
 		copy.setTopP(this.getTopP());
+		copy.setExtraParameters(this.getExtraParameters() != null ? this.getExtraParameters().copy() : null);
 		return (T) copy;
 	}
 

@@ -17,6 +17,7 @@
 package org.springframework.ai.chat.prompt;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.ai.model.ModelOptions;
 import org.springframework.lang.Nullable;
@@ -82,6 +83,15 @@ public interface ChatOptions extends ModelOptions {
 	 */
 	@Nullable
 	Double getTopP();
+
+	/**
+	 * Returns the extra parameters for headers, query parameters, and body fields.
+	 * @return the extra parameters, or null if none are configured
+	 */
+	@Nullable
+	default ExtraParameters getExtraParameters() {
+		return null;
+	}
 
 	/**
 	 * Returns a copy of this {@link ChatOptions}.
@@ -157,6 +167,17 @@ public interface ChatOptions extends ModelOptions {
 		 * @return the builder.
 		 */
 		Builder topP(Double topP);
+
+		/**
+		 * Configures extra parameters for headers, query parameters, and body fields.
+		 * @param configurer consumer to configure the extra parameters
+		 * @return the builder
+		 */
+		default Builder extra(Consumer<ExtraParameters> configurer) {
+			// Default implementation does nothing - providers can override if they
+			// support ExtraParameters
+			return this;
+		}
 
 		/**
 		 * Build the {@link ChatOptions}.

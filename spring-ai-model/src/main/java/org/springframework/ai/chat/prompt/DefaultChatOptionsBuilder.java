@@ -17,6 +17,9 @@
 package org.springframework.ai.chat.prompt;
 
 import java.util.List;
+import java.util.function.Consumer;
+
+import org.springframework.ai.chat.prompt.ExtraParameters;
 
 /**
  * Implementation of {@link ChatOptions.Builder} to create {@link DefaultChatOptions}.
@@ -70,6 +73,14 @@ public class DefaultChatOptionsBuilder implements ChatOptions.Builder {
 
 	public DefaultChatOptionsBuilder topP(Double topP) {
 		this.options.setTopP(topP);
+		return this;
+	}
+
+	public DefaultChatOptionsBuilder extra(Consumer<ExtraParameters> configurer) {
+		if (this.options.getExtraParameters() == null) {
+			this.options.setExtraParameters(new ExtraParameters());
+		}
+		configurer.accept(this.options.getExtraParameters());
 		return this;
 	}
 

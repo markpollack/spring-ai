@@ -24,12 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.chat.prompt.ExtraParameters;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -228,6 +231,12 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 	@JsonIgnore
 	private Map<String, Object> toolContext = new HashMap<>();
 
+	/**
+	 * Extra parameters for headers, query parameters, and body fields.
+	 */
+	@JsonIgnore
+	private ExtraParameters extraParameters;
+
 	// @formatter:on
 
 	public static Builder builder() {
@@ -268,6 +277,7 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 			.metadata(fromOptions.getMetadata())
 			.reasoningEffort(fromOptions.getReasoningEffort())
 			.webSearchOptions(fromOptions.getWebSearchOptions())
+			.extraParameters(fromOptions.getExtraParameters() != null ? fromOptions.getExtraParameters().copy() : null)
 			.build();
 	}
 
@@ -506,6 +516,18 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 		this.internalToolExecutionEnabled = internalToolExecutionEnabled;
 	}
 
+	/**
+	 * Returns the HTTP headers to be sent with the request.
+	 * <p>
+	 * This method is annotated with {@code @JsonIgnore} because HTTP headers are
+	 * transport-level metadata that should not be included in the JSON payload sent to
+	 * the OpenAI API. Headers are applied at the HTTP client level and may contain
+	 * sensitive information such as authorization tokens, API keys, or session data that
+	 * should not be serialized or logged.
+	 * </p>
+	 * @return the HTTP headers map, or null if no headers are configured
+	 */
+	@JsonIgnore
 	public Map<String, String> getHttpHeaders() {
 		return this.httpHeaders;
 	}
@@ -517,7 +539,7 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 	@Override
 	@JsonIgnore
 	public Integer getTopK() {
-		return null;
+		return null; // OpenAI doesn't support topK
 	}
 
 	@Override
@@ -564,9 +586,17 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 		this.webSearchOptions = webSearchOptions;
 	}
 
+	public <T extends ChatOptions> T copy() {
+		return (T) OpenAiChatOptions.fromOptions(this);
+	}
+
 	@Override
-	public OpenAiChatOptions copy() {
-		return OpenAiChatOptions.fromOptions(this);
+	public ExtraParameters getExtraParameters() {
+		return this.extraParameters;
+	}
+
+	public void setExtraParameters(ExtraParameters extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	@Override
@@ -576,7 +606,7 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 				this.streamOptions, this.seed, this.stop, this.temperature, this.topP, this.tools, this.toolChoice,
 				this.user, this.parallelToolCalls, this.toolCallbacks, this.toolNames, this.httpHeaders,
 				this.internalToolExecutionEnabled, this.toolContext, this.outputModalities, this.outputAudio,
-				this.store, this.metadata, this.reasoningEffort, this.webSearchOptions);
+				this.store, this.metadata, this.reasoningEffort, this.webSearchOptions, this.extraParameters);
 	}
 
 	@Override
@@ -609,7 +639,8 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 				&& Objects.equals(this.outputAudio, other.outputAudio) && Objects.equals(this.store, other.store)
 				&& Objects.equals(this.metadata, other.metadata)
 				&& Objects.equals(this.reasoningEffort, other.reasoningEffort)
-				&& Objects.equals(this.webSearchOptions, other.webSearchOptions);
+				&& Objects.equals(this.webSearchOptions, other.webSearchOptions)
+				&& Objects.equals(this.extraParameters, other.extraParameters);
 	}
 
 	@Override
@@ -799,6 +830,19 @@ public class OpenAiChatOptions implements ToolCallingChatOptions {
 
 		public Builder webSearchOptions(WebSearchOptions webSearchOptions) {
 			this.options.webSearchOptions = webSearchOptions;
+			return this;
+		}
+
+		public Builder extraParameters(ExtraParameters extraParameters) {
+			this.options.extraParameters = extraParameters;
+			return this;
+		}
+
+		public Builder extra(Consumer<ExtraParameters> configurer) {
+			if (this.options.extraParameters == null) {
+				this.options.extraParameters = new ExtraParameters();
+			}
+			configurer.accept(this.options.extraParameters);
 			return this;
 		}
 

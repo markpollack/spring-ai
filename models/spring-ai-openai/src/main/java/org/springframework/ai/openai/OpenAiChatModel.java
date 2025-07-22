@@ -406,6 +406,11 @@ public class OpenAiChatModel implements ChatModel {
 		Map<String, String> headers = new HashMap<>(this.defaultOptions.getHttpHeaders());
 		if (prompt.getOptions() != null && prompt.getOptions() instanceof OpenAiChatOptions chatOptions) {
 			headers.putAll(chatOptions.getHttpHeaders());
+
+			// Add headers from ExtraParameters
+			if (chatOptions.getExtraParameters() != null && !chatOptions.getExtraParameters().getHeaders().isEmpty()) {
+				headers.putAll(chatOptions.getExtraParameters().getHeaders());
+			}
 		}
 		return CollectionUtils.toMultiValueMap(
 				headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> List.of(e.getValue()))));
@@ -544,7 +549,7 @@ public class OpenAiChatModel implements ChatModel {
 
 		ToolCallingChatOptions.validateToolCallbacks(requestOptions.getToolCallbacks());
 
-		return new Prompt(prompt.getInstructions(), requestOptions);
+		return new Prompt(prompt.getInstructions(), (ChatOptions) requestOptions);
 	}
 
 	private Map<String, String> mergeHttpHeaders(Map<String, String> runtimeHttpHeaders,
@@ -616,7 +621,8 @@ public class OpenAiChatModel implements ChatModel {
 		request = ModelOptionsUtils.merge(requestOptions, request, ChatCompletionRequest.class);
 
 		// Add the tool definitions to the request's tools parameter.
-		List<ToolDefinition> toolDefinitions = this.toolCallingManager.resolveToolDefinitions(requestOptions);
+		List<ToolDefinition> toolDefinitions = this.toolCallingManager
+			.resolveToolDefinitions((ToolCallingChatOptions) requestOptions);
 		if (!CollectionUtils.isEmpty(toolDefinitions)) {
 			request = ModelOptionsUtils.merge(
 					OpenAiChatOptions.builder().tools(this.getFunctionTools(toolDefinitions)).build(), request,
@@ -627,6 +633,13 @@ public class OpenAiChatModel implements ChatModel {
 		if (request.streamOptions() != null && !stream) {
 			logger.warn("Removing streamOptions from the request as it is not a streaming request!");
 			request = request.streamOptions(null);
+		}
+
+		// Merge extra body parameters from ExtraParameters
+		if (requestOptions != null && requestOptions.getExtraParameters() != null
+				&& !requestOptions.getExtraParameters().getBody().isEmpty()) {
+			request = ModelOptionsUtils.merge(requestOptions.getExtraParameters().getBody(), request,
+					ChatCompletionRequest.class);
 		}
 
 		return request;

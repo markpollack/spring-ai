@@ -23,8 +23,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.chat.prompt.ExtraParameters;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -69,6 +71,8 @@ public class DefaultToolCallingChatOptions implements ToolCallingChatOptions {
 
 	@Nullable
 	private Double topP;
+
+	private ExtraParameters extraParameters = new ExtraParameters();
 
 	@Override
 	public List<ToolCallback> getToolCallbacks() {
@@ -198,6 +202,14 @@ public class DefaultToolCallingChatOptions implements ToolCallingChatOptions {
 		this.topP = topP;
 	}
 
+	public ExtraParameters getExtraParameters() {
+		return this.extraParameters;
+	}
+
+	public void setExtraParameters(ExtraParameters extraParameters) {
+		this.extraParameters = extraParameters;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends ChatOptions> T copy() {
@@ -214,6 +226,7 @@ public class DefaultToolCallingChatOptions implements ToolCallingChatOptions {
 		options.setTemperature(getTemperature());
 		options.setTopK(getTopK());
 		options.setTopP(getTopP());
+		options.setExtraParameters(getExtraParameters());
 		return (T) options;
 	}
 
@@ -322,6 +335,17 @@ public class DefaultToolCallingChatOptions implements ToolCallingChatOptions {
 		@Override
 		public ToolCallingChatOptions.Builder topP(@Nullable Double topP) {
 			this.options.setTopP(topP);
+			return this;
+		}
+
+		public ToolCallingChatOptions.Builder extraParameters(ExtraParameters extraParameters) {
+			this.options.setExtraParameters(extraParameters);
+			return this;
+		}
+
+		@Override
+		public ToolCallingChatOptions.Builder extra(Consumer<ExtraParameters> extraParametersConsumer) {
+			extraParametersConsumer.accept(this.options.extraParameters);
 			return this;
 		}
 
