@@ -116,12 +116,6 @@ class OpenAiChatModelExtraParametersIT {
 			extra.header("X-Request-ID", "12345");
 		}).build();
 
-		// Debug: Check if ExtraParameters are set correctly
-		System.out.println("DEBUG TEST: ExtraParameters = " + options.getExtraParameters());
-		if (options.getExtraParameters() != null) {
-			System.out.println("DEBUG TEST: Extra headers = " + options.getExtraParameters().getHeaders());
-		}
-
 		// Make the chat request
 		Prompt prompt = new Prompt("Hello", options);
 		ChatResponse response = chatModel.call(prompt);
@@ -132,13 +126,6 @@ class OpenAiChatModelExtraParametersIT {
 
 		// Verify the HTTP request contains extra headers
 		RecordedRequest recordedRequest = mockWebServer.takeRequest();
-
-		// Debug: Print all headers
-		System.out.println("=== DEBUG: All Headers ===");
-		for (String headerName : recordedRequest.getHeaders().names()) {
-			System.out.println(headerName + ": " + recordedRequest.getHeader(headerName));
-		}
-		System.out.println("=== END DEBUG ===");
 
 		assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("test-header-value");
 		assertThat(recordedRequest.getHeader("X-Request-ID")).isEqualTo("12345");
@@ -194,11 +181,6 @@ class OpenAiChatModelExtraParametersIT {
 		// Verify the HTTP request body contains extra parameters
 		RecordedRequest recordedRequest = mockWebServer.takeRequest();
 		String requestBody = recordedRequest.getBody().readUtf8();
-
-		// Debug: Print the request body
-		System.out.println("=== DEBUG: Request Body ===");
-		System.out.println(requestBody);
-		System.out.println("=== END DEBUG ===");
 
 		// Parse the JSON request body
 		var requestJson = objectMapper.readTree(requestBody);
